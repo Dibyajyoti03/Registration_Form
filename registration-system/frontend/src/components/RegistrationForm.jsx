@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import axios from "axios";
 
-function RegistrationForm() {
+function RegistrationForm({ onLoginClick }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -10,124 +9,134 @@ function RegistrationForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [gender, setGender] = useState("");
   const [agree, setAgree] = useState(false);
+
   const [errors, setErrors] = useState({});
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const newErrors = {};
+    const newErrors = {};
 
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // First Name
-  if (firstName === "") {
-    newErrors.firstName = "Please Enter Your First Name";
-  }
+    // First Name
+    if (firstName.trim() === "") {
+      newErrors.firstName = "Please Enter Your First Name";
+    }
 
-  // Last Name
-  if (lastName === "") {
-    newErrors.lastName = "Please Enter Your Last Name";
-  }
+    // Last Name
+    if (lastName.trim() === "") {
+      newErrors.lastName = "Please Enter Your Last Name";
+    }
 
-  // Email
-  if (email === "") {
-    newErrors.email = "Please Enter Your Email";
-  } else if (!emailPattern.test(email)) {
-    newErrors.email = "Please Enter A Valid Email";
-  }
+    // Email
+    if (email.trim() === "") {
+      newErrors.email = "Please Enter Your Email";
+    } else if (!emailPattern.test(email)) {
+      newErrors.email = "Please Enter A Valid Email";
+    }
 
-  // Password
-  if (password === "") {
-    newErrors.password = "Please Enter Your Password";
-  } else if (password.length < 8) {
-    newErrors.password =
-      "Password must be at least 8 characters";
-  } else if (!/[A-Z]/.test(password)) {
-    newErrors.password =
-      "Password must contain an uppercase letter";
-  } else if (!/[a-z]/.test(password)) {
-    newErrors.password =
-      "Password must contain a lowercase letter";
-  } else if (!/[0-9]/.test(password)) {
-    newErrors.password =
-      "Password must contain a number";
-  }
+    // Password
+    if (password === "") {
+      newErrors.password = "Please Enter Your Password";
+    } else if (password.length < 8) {
+      newErrors.password =
+        "Password must be at least 8 characters";
+    } else if (!/[A-Z]/.test(password)) {
+      newErrors.password =
+        "Password must contain an uppercase letter";
+    } else if (!/[a-z]/.test(password)) {
+      newErrors.password =
+        "Password must contain a lowercase letter";
+    } else if (!/[0-9]/.test(password)) {
+      newErrors.password =
+        "Password must contain a number";
+    }
 
-  // Confirm Password
-  if (password !== "" && password !== confirmPassword) {
-    newErrors.confirmPassword = "Passwords do not match";
-  }
+    // Confirm Password
+    if (confirmPassword === "") {
+      newErrors.confirmPassword =
+        "Please Confirm Your Password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword =
+        "Passwords do not match";
+    }
 
-  // Gender
-  if (gender === "") {
-    newErrors.gender = "Please select your gender";
-  }
+    // Gender
+    if (gender === "") {
+      newErrors.gender = "Please select your gender";
+    }
 
-  // Terms & Conditions
-  if (!agree) {
-    newErrors.agree =
-      "You must agree to the Terms & Conditions";
-  }
+    // Terms & Conditions
+    if (!agree) {
+      newErrors.agree =
+        "You must agree to the Terms & Conditions";
+    }
 
-  setErrors(newErrors);
+    setErrors(newErrors);
 
-  // Stop if frontend validation fails
-  if (Object.keys(newErrors).length > 0) {
-    return;
-  }
+    // Stop if validation fails
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
 
-  // Data sent to backend
-  const userData = {
-    firstName,
-    lastName,
-    email,
-    password,
-    gender,
+    // Data sent to backend
+    const userData = {
+      firstName,
+      lastName,
+      email,
+      password,
+      gender,
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/register",
+        userData
+      );
+
+      console.log("Backend response:", response.data);
+
+      // Success message
+      setSuccess(response.data.message);
+
+      // Clear errors
+      setErrors({});
+
+      // Reset form
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setGender("");
+      setAgree(false);
+
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+
+    } catch (error) {
+      console.error("Registration error:", error);
+
+      if (error.response) {
+        setErrors({
+          server:
+            error.response.data.message ||
+            "Registration failed",
+        });
+      } else {
+        setErrors({
+          server: "Unable to connect to the server",
+        });
+      }
+    }
   };
 
-  try {
-    const response = await axios.post(
-      "http://localhost:5000/api/register",
-      userData
-    );
-
-    console.log("Backend response:", response.data);
-
-    // Show success message
-    setSuccess(response.data.message);
-
-    // Clear errors
-    setErrors({});
-
-    // Reset form only after successful registration
-    setFirstName("");
-    setLastName("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setGender("");
-    setAgree(false);
-
-    setShowPassword(false);
-    setShowConfirmPassword(false);
-
-  } catch (error) {
-    console.error("Registration error:", error);
-
-    if (error.response) {
-      setErrors({
-        server: error.response.data.message,
-      });
-    } else {
-      setErrors({
-        server: "Unable to connect to the server",
-      });
-    }
-  }
-};
   return (
     <div className="container d-flex justify-content-center align-items-center min-vh-100">
       <div className="card shadow mx-auto registration-card">
@@ -137,6 +146,7 @@ function RegistrationForm() {
 
             {/* Heading */}
             <div className="text-center mb-4">
+
               <h1 className="fw-bold">
                 Create Account
               </h1>
@@ -151,6 +161,14 @@ function RegistrationForm() {
                   {success}
                 </div>
               )}
+
+              {/* Server Error */}
+              {errors.server && (
+                <div className="alert alert-danger">
+                  {errors.server}
+                </div>
+              )}
+
             </div>
 
             {/* First Name + Last Name */}
@@ -158,6 +176,7 @@ function RegistrationForm() {
 
               {/* First Name */}
               <div className="col-md-6 mb-3">
+
                 <label className="form-label">
                   First Name:
                 </label>
@@ -184,10 +203,12 @@ function RegistrationForm() {
                     {errors.firstName}
                   </p>
                 )}
+
               </div>
 
               {/* Last Name */}
               <div className="col-md-6 mb-3">
+
                 <label className="form-label">
                   Last Name:
                 </label>
@@ -214,12 +235,14 @@ function RegistrationForm() {
                     {errors.lastName}
                   </p>
                 )}
+
               </div>
 
             </div>
 
             {/* Email */}
             <div className="mt-3 mb-3">
+
               <label className="form-label">
                 Email:
               </label>
@@ -246,16 +269,22 @@ function RegistrationForm() {
                   {errors.email}
                 </p>
               )}
+
             </div>
 
             {/* Password */}
             <div className="mt-3 mb-3">
+
               <label className="form-label">
                 Password:
               </label>
 
               <input
-                type={showPassword ? "text" : "password"}
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
                 className="form-control"
                 placeholder="Enter Your Password"
                 value={password}
@@ -288,10 +317,12 @@ function RegistrationForm() {
                   {errors.password}
                 </p>
               )}
+
             </div>
 
             {/* Confirm Password */}
             <div className="mt-3 mb-3">
+
               <label className="form-label">
                 Confirm Password:
               </label>
@@ -336,6 +367,7 @@ function RegistrationForm() {
                   {errors.confirmPassword}
                 </p>
               )}
+
             </div>
 
             {/* Gender */}
@@ -349,6 +381,7 @@ function RegistrationForm() {
 
                 {/* Male */}
                 <div className="form-check">
+
                   <input
                     className="form-check-input"
                     type="radio"
@@ -374,10 +407,12 @@ function RegistrationForm() {
                   >
                     Male
                   </label>
+
                 </div>
 
                 {/* Female */}
                 <div className="form-check">
+
                   <input
                     className="form-check-input"
                     type="radio"
@@ -403,10 +438,12 @@ function RegistrationForm() {
                   >
                     Female
                   </label>
+
                 </div>
 
                 {/* Other */}
                 <div className="form-check">
+
                   <input
                     className="form-check-input"
                     type="radio"
@@ -432,6 +469,7 @@ function RegistrationForm() {
                   >
                     Other
                   </label>
+
                 </div>
 
               </div>
@@ -485,20 +523,29 @@ function RegistrationForm() {
 
             {/* Submit Button */}
             <div className="d-grid mt-4">
+
               <button
                 type="submit"
                 className="btn btn-primary btn-lg"
               >
                 Create Account
               </button>
+
             </div>
 
             {/* Login */}
-            <p className="mt-3">
+            <p className="mt-3 text-center">
+
               Already have an account?{" "}
-              <a href="#">
+
+              <button
+                type="button"
+                className="btn btn-link p-0"
+                onClick={onLoginClick}
+              >
                 Login
-              </a>
+              </button>
+
             </p>
 
           </form>
@@ -510,4 +557,3 @@ function RegistrationForm() {
 }
 
 export default RegistrationForm;
-

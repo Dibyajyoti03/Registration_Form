@@ -1,15 +1,23 @@
-import './App.css'
-import RegistrationForm from './components/RegistrationForm'
-import Login from './components/Login'
+import { useState } from "react";
+import RegistrationForm from "./components/RegistrationForm";
+import Login from "./components/Login";
 
 function App() {
+  const [showLogin, setShowLogin] = useState(false);
+
   return (
-    <div className="app">
-      <RegistrationForm />
-       <Login />
-    </div>
-    
-  )
+    <>
+      {showLogin ? (
+        <Login
+          onRegisterClick={() => setShowLogin(false)}
+        />
+      ) : (
+        <RegistrationForm
+          onLoginClick={() => setShowLogin(true)}
+        />
+      )}
+    </>
+  );
 }
 
-export default App
+export default App;
